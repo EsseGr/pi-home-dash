@@ -313,10 +313,20 @@ def _sample(ids):
         return dict(ex.map(_stats, ids))
 
 
+def docker_refresh():
+    """docker.refresh_seconds (default 10, min 5): how often open pages refresh the container table."""
+    try:
+        return max(5, int((cfg().get("docker") or {}).get("refresh_seconds", 10)))
+    except (TypeError, ValueError):
+        return 10
+
+
 def containers():
-    """Name/state/CPU%/memory for all containers; cached 20 s, CPU from deltas between our own samples."""
+    """Name/state/CPU%/memory for all containers, CPU from deltas between our own samples.
+    One shared server-side cache (a bit shorter than the page refresh) so any number of open tabs
+    costs at most one Docker API sweep per interval."""
     with dlock:
-        if _dock["d"] is not None and time.time() - _dock["t"] < 20:
+        if _dock["d"] is not None and time.time() - _dock["t"] < docker_refresh() - 1.5:
             return _dock["d"]
         if not docker_configured():
             return {"error": "docker_disabled", "items": []}
@@ -426,6 +436,7 @@ class H(BaseHTTPRequestHandler):
                                 "photo_link": bool(IMMICH_PUBLIC),
                                 "photo_minutes": max(1, int(im.get("refresh_minutes", 15))),
                                 "slide_seconds": max(4, int(im.get("slide_seconds", 8))),
+                                "docker_refresh_seconds": docker_refresh(),
                                 "default_album": str(im.get("album") or "").strip()})
             if p == "/api/status":
                 return self.js(status())

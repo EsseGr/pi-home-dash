@@ -210,7 +210,7 @@ async function tiles(){
       a.append(t.icon?el('img',{src:t.icon,alt:'',class:t.invert?'inv':''}):el('div',{class:'ph'},t.name[0]||'?'),el('span',{},t.name));
       if(t.ping)a.append(el('i',{class:'dot','data-n':t.name}));box.append(a)}
     root.append(el('div',{class:'group'},el('h2',{},g.name||T('apps')),box))}
-  status();SLIDE=c.slide_seconds||8;defAlbum=c.default_album;clock();
+  status();SLIDE=c.slide_seconds||8;SYSSEC=c.docker_refresh_seconds||10;sysTimer();defAlbum=c.default_album;clock();
 }
 async function status(){try{const s=await (await fetch('/api/status')).json();
   document.querySelectorAll('.dot').forEach(d=>{const v=s[d.dataset.n];d.className='dot '+(v===true?'up':v===false?'down':'')})}catch(e){}}
@@ -256,7 +256,10 @@ $('#album').onchange=e=>{const v=e.target.value;localStorage.setItem('dash.album
 applyI18n();clock();setInterval(clock,10000);
 /* config (locale) first, then the widgets so they render in the right language */
 tiles().catch(()=>{}).then(()=>{weather();system();return loadAlbums()}).then(()=>loadSet(false)).catch(()=>{});
-setInterval(status,60000);setInterval(weather,10*60000);setInterval(system,30000);
+setInterval(status,60000);setInterval(weather,10*60000);
+/* host + container table: every docker.refresh_seconds (default 10), only while the tab is visible */
+let SYSSEC=10,sysT=null;function sysTimer(){clearInterval(sysT);sysT=setInterval(()=>{if(!document.hidden)system()},SYSSEC*1000)}sysTimer();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)system()});
 </script>
 </body>
 </html>

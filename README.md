@@ -20,7 +20,7 @@ One page with your self-hosted apps, a big photo carousel from **Immich**, the t
 | **Private by design** | The Immich API key never reaches the browser. Images are proxied as `/thumb/<id>`, and only for asset IDs the server handed out itself. |
 | **Clock & weather** | Browser-local clock (or a fixed `ui.timezone`), sunrise and sunset, and current weather plus a 3-day forecast from [Open-Meteo](https://open-meteo.com) (no API key; cached on the server). |
 | **Host stats** | CPU, temperature, memory, load and uptime. |
-| **Containers** | State, CPU % and memory for every container, through a read-only Docker API proxy (recommended) or the Docker socket. |
+| **Containers** | State, CPU % and memory for every container, refreshed live every `docker.refresh_seconds` (default 10 s; one shared server-side sample per interval, paused while the tab is hidden), through a read-only Docker API proxy (recommended) or the Docker socket. |
 | **Languages** | English (default) and Greek (`ui.locale: el`). Adding a language means adding one block of strings in `static/index.html`. |
 
 Every block is optional. Leave out `IMMICH_URL`, the `weather:` section or the Docker overlay and that part of the page disappears.
@@ -93,7 +93,7 @@ ui:       {locale: en, clock_24h: true, timezone: Europe/Berlin, host_label: Ras
 groups:   [{name: Media, tiles: [{name: Jellyfin, url: "http://jellyfin.local", icon: jellyfin, ping: "http://host.docker.internal:8096"}]}]
 immich:   {album: "", count: 12, slide_seconds: 8, refresh_minutes: 10}
 weather:  {name: Berlin, lat: 52.52, lon: 13.405, timezone: auto, units: metric}
-docker:   {enabled: true}
+docker:   {enabled: true, refresh_seconds: 10}
 ```
 
 ### Environment variables

@@ -54,3 +54,5 @@ weather:
 # Container table. Needs one of the Docker overlays (see docker-compose.yml); set false to hide it.
 docker:
   enabled: true
+  refresh_seconds: 10  # how often the container table (state, CPU, memory) updates on open pages (min 5).
+                       # The server caches one Docker sweep per interval, so extra open tabs add no load.
