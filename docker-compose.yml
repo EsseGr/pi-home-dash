@@ -1,0 +1,39 @@
+# pi-home-dash — base compose file (no Docker access).
+#
+#   cp .env.example .env && cp config.example.yaml config/config.yaml   # then edit both
+#   docker compose up -d --build
+#
+# Container stats are optional. Pick ONE of the overlays via COMPOSE_FILE in .env:
+#   compose.docker-proxy.yml   (recommended) read-only tecnativa/docker-socket-proxy
+#   compose.docker-socket.yml  mounts /var/run/docker.sock directly (see the warning in that file)
+#
+# SECURITY: the dashboard has no login. By default it listens on 127.0.0.1 only. Set DASH_BIND to a
+# LAN or VPN address (e.g. your Tailscale IP) or put it behind a reverse proxy with auth. Do not
+# expose it to the internet: it shows your app links, host stats and (with Immich) your photos.
+name: pi-home-dash
+services:
+  dash:
+    build: .
+    image: pi-home-dash:local
+    container_name: ${DASH_CONTAINER_NAME:-pi-home-dash}
+    restart: unless-stopped
+    mem_limit: 64m
+    cpus: 0.25
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "${DASH_BIND:-127.0.0.1}:${DASH_PORT:-3090}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # lets tiles ping / Immich be reached on the Docker host
+    env_file:
+      - path: ./.env
+        required: false
+    environment:
+      DASH_CONFIG: /config/config.yaml
+    volumes:
+      - ${DASH_CONFIG_DIR:-./config}:/config:ro
+    logging:
+      driver: json-file
+      options: {max-size: "2m", max-file: "2"}

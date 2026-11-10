@@ -1,0 +1,56 @@
+# pi-home-dash configuration.
+# Copy to config/config.yaml and edit. Changes are picked up on the next page refresh (no restart).
+
+title: My Home
+
+# Interface. locale: "en" (default) or "el" (Greek); any BCP-47 tag such as "en-GB" or "el-GR" also
+# works for date formatting. Untranslated languages fall back to English text.
+ui:
+  locale: en
+  clock_24h: true
+  # timezone: Europe/Berlin   # optional IANA zone for the clock; default = the browser's own zone
+  # host_label: Raspberry Pi  # title of the host stats card (default: "System")
+
+# App tiles, in groups. Per tile:
+#   name, url        shown and opened in a new tab
+#   icon             file name in config/icons without extension (get them with ./fetch-icons.sh <name>)
+#   ping             optional URL the *server* checks every 60 s for the green/red dot (any HTTP answer = up)
+#   icon_invert      optional, true for dark icons that disappear on the dark background
+groups:
+  - name: Photos & Files
+    tiles:
+      - {name: Immich,         url: "http://immich.local",         icon: immich,         ping: "http://host.docker.internal:2283"}
+      - {name: Nextcloud,      url: "http://nextcloud.local",      icon: nextcloud}
+  - name: Media
+    tiles:
+      - {name: Jellyfin,       url: "http://jellyfin.local",       icon: jellyfin,       ping: "http://host.docker.internal:8096"}
+  - name: Home & Network
+    tiles:
+      - {name: Home Assistant, url: "http://homeassistant.local:8123", icon: home-assistant}
+      - {name: AdGuard Home,   url: "http://adguard.local",        icon: adguard-home}
+  - name: System
+    tiles:
+      - {name: Uptime Kuma,    url: "http://status.local",         icon: uptime-kuma}
+      - {name: Cockpit,        url: "http://cockpit.local:9090",   icon: cockpit,        icon_invert: true}
+
+# Immich photo carousel. Needs IMMICH_URL + IMMICH_API_KEY in .env (the key stays on the server).
+# On the page there is one selector: an album or "Random (whole library)"; each browser remembers its choice.
+immich:
+  enabled: true
+  album: ""            # default album name (or id); empty = random photos from the whole library
+  count: 12            # photos per set; after a full cycle a new random set is loaded
+  slide_seconds: 8     # how often the big photo changes (min 4)
+  refresh_minutes: 10  # server cache for the first page load
+
+# Weather from Open-Meteo (free, no API key; cached on the server). Remove this block to hide the card.
+weather:
+  name: Berlin
+  lat: 52.52
+  lon: 13.405
+  timezone: auto       # IANA zone or "auto" (zone of the coordinates)
+  units: metric        # metric (°C, km/h) or imperial (°F, mph)
+  refresh_minutes: 15
+
+# Container table. Needs one of the Docker overlays (see docker-compose.yml); set false to hide it.
+docker:
+  enabled: true

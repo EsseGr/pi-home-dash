@@ -1,0 +1,11 @@
+# your own settings and secrets stay local
+config/config.yaml
+config/icons/
+.env
+*.env
+!.env.example
+# editor / OS / python
+*.bak*
+__pycache__/
+*.pyc
+.DS_Store

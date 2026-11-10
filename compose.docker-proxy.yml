@@ -1,0 +1,26 @@
+# Optional overlay (recommended): container stats through a read-only Docker API proxy.
+#   COMPOSE_FILE=docker-compose.yml:compose.docker-proxy.yml   (in .env)
+# The proxy only allows GET on /containers (list + stats). POST/DELETE and every other API section
+# are refused, so a bug or compromise in the dashboard cannot start, stop or create containers.
+# The proxy is not published on any host port; it lives on an internal-only network.
+# (On SELinux/AppArmor-hardened hosts the proxy may need `privileged: true` to open the socket.)
+services:
+  dash:
+    environment:
+      DOCKER_HOST: tcp://docker-proxy:2375
+    networks: [default, docker-api]
+    depends_on: [docker-proxy]
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: ${DASH_CONTAINER_NAME:-pi-home-dash}-docker-proxy
+    restart: unless-stopped
+    mem_limit: 32m
+    environment:
+      CONTAINERS: 1
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [docker-api]
+networks:
+  docker-api:
+    internal: true

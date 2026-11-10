@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pi-home-dash</title>
+<style>
+:root{--bg:#0f1218;--card:#1a1f29;--card2:#222937;--txt:#e8ecf3;--mut:#8a94a7;--acc:#5aa9ff;--ok:#3ecf6e;--bad:#ef5350;--warn:#f5b041}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+main{max-width:1440px;margin:0 auto;padding:24px 20px 40px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:26px;margin:0;font-weight:650}#clock{color:var(--mut);font-size:15px}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:28px 0 12px;font-weight:600}
+h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin:0 0 10px;font-weight:600}
+/* top: carousel left, info cards right */
+.top{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,1fr) minmax(290px,1.05fr);gap:12px;align-items:stretch}
+.info{display:grid;grid-template-columns:1fr;gap:12px;align-content:start}
+.apps{background:var(--card);border-radius:16px;padding:14px 14px 6px}
+.apps .group{margin:0 0 12px}.apps h2{margin:0 0 8px;font-size:12.5px}
+.apps .tiles{grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.apps .tile{padding:12px 4px 9px;gap:6px;border-radius:12px;background:var(--card2)}
+.apps .tile:hover{background:#2b3343}
+.apps .tile img,.apps .tile .ph{width:36px;height:36px}
+.apps .tile span{font-size:11.5px;line-height:1.2}
+.apps .dot{top:6px;right:6px;width:7px;height:7px}
+@media(max-width:1150px){.top{grid-template-columns:minmax(0,1.5fr) minmax(270px,1fr)}.apps{grid-column:1/-1}.apps .groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0 16px}}
+@media(max-width:760px){.top{grid-template-columns:1fr}.info{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}}
+.card{background:var(--card);border-radius:16px;padding:16px 18px;min-height:150px}
+.car{position:relative;border-radius:18px;overflow:hidden;background:#0a0d12;min-height:460px;height:100%}
+@media(max-width:760px){.car{min-height:0;height:auto;aspect-ratio:4/3}}
+.car img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease;cursor:pointer}
+.car img.on{opacity:1}
+.car .shade{position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(transparent,rgba(0,0,0,.6));pointer-events:none}
+.car .cap{position:absolute;left:16px;bottom:12px;color:#fff;text-shadow:0 1px 4px #000;font-size:15px;pointer-events:none}
+.car .cap b{font-weight:600}.car .cap span{display:block;font-size:12.5px;opacity:.85}
+.car .nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.38);color:#fff;font-size:22px;cursor:pointer;opacity:0;transition:opacity .2s}
+.car:hover .nav{opacity:1}.car .nav.l{left:12px}.car .nav.r{right:12px}
+.car .sel{position:absolute;top:12px;left:12px;z-index:2}
+.car select{background:rgba(15,18,24,.72);backdrop-filter:blur(6px);border-color:rgba(255,255,255,.15)}
+.car .cnt{position:absolute;top:16px;right:14px;color:#fff;font-size:12px;text-shadow:0 1px 3px #000;opacity:.85}
+.car .msg{position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);padding:20px;text-align:center}
+.big{font-size:44px;font-weight:650;line-height:1.05;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:14px;margin-top:6px}
+.wx{display:flex;align-items:center;gap:14px}.wx .ic{font-size:44px;line-height:1}
+.kv{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--mut);font-size:13px;margin-top:10px}.kv b{color:var(--txt);font-weight:600}
+.days{display:flex;gap:8px;margin-top:12px}.days div{flex:1;background:var(--card2);border-radius:10px;padding:6px 4px;text-align:center;font-size:12.5px;color:var(--mut)}.days div b{display:block;color:var(--txt);font-size:13px}
+.meter{margin:9px 0}.meter .l{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}.meter .l b{color:var(--txt)}
+.meter .b{height:7px;background:var(--card2);border-radius:5px;overflow:hidden;margin-top:4px}.meter .b i{display:block;height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
+.meter .b i.w{background:var(--warn)}.meter .b i.x{background:var(--bad)}
+/* tiles */
+.group{margin-top:18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 8px 14px;background:var(--card);border-radius:16px;text-decoration:none;color:var(--txt);transition:transform .12s,background .12s}
+.tile:hover{transform:translateY(-2px);background:var(--card2)}
+.tile img,.tile .ph{width:52px;height:52px;object-fit:contain}
+.tile img.inv{filter:invert(1) brightness(.92)}
+.tile .ph{display:grid;place-items:center;border-radius:12px;background:#2b3343;font-weight:700;font-size:22px}
+.tile span{font-size:13.5px;text-align:center}
+.dot{position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:#555}
+.dot.up{background:var(--ok)}.dot.down{background:var(--bad)}
+/* containers */
+.tbl{background:var(--card);border-radius:16px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:8px 12px;text-align:left;white-space:nowrap}th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #2a3140}
+td.n{text-align:right;font-variant-numeric:tabular-nums}th.n{text-align:right}
+tr+tr td{border-top:1px solid #20262f}
+.st{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11.5px;font-weight:600;letter-spacing:.03em}
+.st.running{background:#1f3b2a;color:var(--ok)}.st.exited,.st.dead{background:#3b1f22;color:var(--bad)}.st.other{background:#3a3220;color:var(--warn)}
+.tbl .more{display:block;width:100%;padding:9px;background:none;border:0;border-top:1px solid #2a3140;color:var(--acc);cursor:pointer;font:inherit;font-size:13px}
+/* photos */
+.note{color:var(--mut);background:var(--card);padding:16px;border-radius:14px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+select{background:var(--card);color:var(--txt);border:1px solid #2a3140;border-radius:10px;padding:6px 10px;font:inherit;font-size:13.5px;max-width:260px}
+.mut{color:var(--mut);font-size:13px}
+[hidden]{display:none!important}
+/* optional features: no photos -> info + apps share the top row */
+body.nophotos .top{grid-template-columns:minmax(270px,1fr) minmax(290px,1.6fr)}
+body.nophotos .apps{grid-column:auto}
+@media(max-width:760px){body.nophotos .top{grid-template-columns:1fr}}
+footer{margin-top:28px;text-align:center;color:var(--mut);font-size:12px}footer a{color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+<header><h1 id="title">Home</h1><div id="clock"></div></header>
+
+<div class="top">
+<div class="car" id="car">
+  <img alt="" id="ca"><img alt="" id="cb"><div class="shade"></div>
+  <div class="sel"><select id="album"><option value="all" data-i18n="random_all"></option></select></div>
+  <div class="cnt" id="ccnt"></div><div class="cap" id="ccap"></div>
+  <button class="nav l" id="cprev">&lsaquo;</button><button class="nav r" id="cnext">&rsaquo;</button>
+  <div class="msg" id="cmsg" data-i18n="loading"></div>
+</div>
+<div class="info">
+  <div class="card"><h3 data-i18n="time"></h3><div class="big" id="bigtime">--:--</div><div class="sub" id="bigdate"></div><div class="kv" id="sun"></div></div>
+  <div class="card" id="wxcard"><h3 id="wxplace" data-i18n="weather"></h3><div id="wx"><div class="mut" data-i18n="loading"></div></div></div>
+  <div class="card"><h3 id="hostlabel" data-i18n="host"></h3><div id="sys"><div class="mut" data-i18n="loading"></div></div></div>
+</div>
+<div class="apps"><div class="groups" id="groups"></div></div>
+</div>
+
+<div id="csec">
+<div class="bar"><h2 id="ctitle" data-i18n="containers"></h2><span class="mut" id="cupd"></span></div>
+<div class="tbl" id="ctr"><div class="note" data-i18n="loading"></div></div>
+</div>
+
+<footer>pi-home-dash <span id="ver"></span></footer>
+</main>
+<script>
+/* ---------------------------------------------------------------- i18n
+   Add a language: copy the "en" block, translate, and set ui.locale in config.yaml. Missing keys fall back to English. */
+const I18N={
+en:{loading:'Loading…',time:'Time',weather:'Weather',host:'System',containers:'Containers',running_of:'{a}/{b} running',
+  random_all:'Random (whole library)',random:'Random',pick_photos:'Which photos to show',prev:'Previous',next:'Next',
+  needs_key:'Set IMMICH_API_KEY (read-only key) in .env and restart the container.',no_photos:'no photos',photos_failed:'Could not load photos.',
+  album_not_found:'default album not found',unknown_album:'unknown album',weather_unavailable:'weather is unavailable',unavailable:'Unavailable',
+  feels:'Feels like',humidity:'Humidity',wind:'Wind',sunrise:'Sunrise',sunset:'Sunset',load:'load',temp:'Temperature',memory:'Memory',
+  uptime:'Up',updated:'updated {t}',name:'Name',state:'State',cpu:'CPU',status:'Uptime',less:'Show less',all_containers:'All containers ({n})',
+  docker_unavailable:'Docker is not reachable',docker_disabled:'Docker stats are off',apps:'Apps',
+  st_running:'RUNNING',st_exited:'STOPPED',st_dead:'DEAD',st_restarting:'RESTARTING',st_paused:'PAUSED',st_created:'CREATED',
+  d:'d',h:'h',m:'m',
+  wmo:{0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Freezing fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',
+   56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',
+   73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Showers',81:'Showers',82:'Violent showers',85:'Snow showers',86:'Heavy snow showers',
+   95:'Thunderstorm',96:'Thunderstorm with hail',99:'Thunderstorm with hail'}},
+el:{loading:'Φόρτωση…',time:'Ώρα',weather:'Καιρός',host:'Σύστημα',containers:'Containers',running_of:'{a}/{b} σε λειτουργία',
+  random_all:'Διάφορες (όλη η βιβλιοθήκη)',random:'Διάφορες',pick_photos:'Τι φωτογραφίες να δείχνει',prev:'Προηγούμενη',next:'Επόμενη',
+  needs_key:'Χρειάζεται κλειδί Immich (μόνο ανάγνωση) στο IMMICH_API_KEY.',no_photos:'καμία φωτογραφία',photos_failed:'Δεν φορτώθηκαν οι φωτογραφίες.',
+  album_not_found:'δεν βρέθηκε το προεπιλεγμένο άλμπουμ',unknown_album:'άγνωστο άλμπουμ',weather_unavailable:'ο καιρός δεν είναι διαθέσιμος',unavailable:'Μη διαθέσιμος',
+  feels:'Αίσθηση',humidity:'Υγρασία',wind:'Άνεμος',sunrise:'Ανατολή',sunset:'Δύση',load:'φορτίο',temp:'Θερμοκρασία',memory:'Μνήμη',
+  uptime:'Σε λειτουργία',updated:'ενημέρωση {t}',name:'Όνομα',state:'Κατάσταση',cpu:'CPU',status:'Χρόνος',less:'Λιγότερα',all_containers:'Όλα τα containers ({n})',
+  docker_unavailable:'Docker μη διαθέσιμο',docker_disabled:'χωρίς πρόσβαση στο Docker',apps:'Εφαρμογές',
+  st_running:'ΣΕ ΛΕΙΤΟΥΡΓΙΑ',st_exited:'ΣΤΑΜΑΤΗΜΕΝΟ',st_dead:'ΝΕΚΡΟ',st_restarting:'ΕΠΑΝΕΚΚΙΝΗΣΗ',st_paused:'ΣΕ ΠΑΥΣΗ',st_created:'ΔΗΜΙΟΥΡΓΗΘΗΚΕ',
+  d:'μ.',h:'ώ.',m:'λ.',
+  wmo:{0:'Αίθριος',1:'Κυρίως αίθριος',2:'Λίγα σύννεφα',3:'Συννεφιά',45:'Ομίχλη',48:'Παγωμένη ομίχλη',51:'Ελαφρύ ψιχάλισμα',53:'Ψιχάλισμα',55:'Έντονο ψιχάλισμα',
+   56:'Παγωμένο ψιχάλισμα',57:'Παγωμένο ψιχάλισμα',61:'Ελαφριά βροχή',63:'Βροχή',65:'Δυνατή βροχή',66:'Παγωμένη βροχή',67:'Παγωμένη βροχή',71:'Ελαφρύ χιόνι',
+   73:'Χιόνι',75:'Πυκνό χιόνι',77:'Χιονόκοκκοι',80:'Μπόρες',81:'Μπόρες',82:'Ισχυρές μπόρες',85:'Χιονόπτωση',86:'Έντονη χιονόπτωση',
+   95:'Καταιγίδα',96:'Καταιγίδα με χαλάζι',99:'Καταιγίδα με χαλάζι'}}};
+let LOC='en',LANG='en',TZ=undefined,H24=true;
+const T=(k,v={})=>{let s=((I18N[LANG]||{})[k]??I18N.en[k]??k);for(const[x,y]of Object.entries(v))s=s.replace('{'+x+'}',y);return s};
+const tErr=e=>e?(I18N.en[e]?T(e):e):'';
+function applyI18n(){document.documentElement.lang=LANG;document.querySelectorAll('[data-i18n]').forEach(n=>n.textContent=T(n.dataset.i18n));
+  $('#album').title=T('pick_photos');$('#cprev').title=T('prev');$('#cnext').title=T('next')}
+const $=s=>document.querySelector(s);
+function el(t,a={},...k){const e=document.createElement(t);for(const[x,y]of Object.entries(a))e.setAttribute(x,y);k.forEach(c=>e.append(c));return e}
+const fmtB=b=>b==null?'—':b>=1073741824?(b/1073741824).toFixed(1)+' GB':(b/1048576).toFixed(b<10485760?1:0)+' MB';
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const tOpt=o=>Object.assign({timeZone:TZ},o);
+/* clock: browser local time (or ui.timezone) */
+function clock(){const d=new Date(),hm=tOpt({hour:'2-digit',minute:'2-digit',hourCycle:H24?'h23':undefined,hour12:H24?false:undefined});
+  $('#clock').textContent=cap(d.toLocaleDateString(LOC,tOpt({weekday:'long',day:'numeric',month:'long'})))+' · '+d.toLocaleTimeString(LOC,hm);
+  $('#bigtime').textContent=d.toLocaleTimeString(LOC,hm);
+  $('#bigdate').textContent=cap(d.toLocaleDateString(LOC,tOpt({weekday:'long',day:'numeric',month:'long',year:'numeric'})))}
+/* weather */
+const WIC={0:['☀️','🌙'],1:['🌤️','🌙'],2:['⛅','☁️'],3:['☁️'],45:['🌫️'],48:['🌫️'],51:['🌦️'],53:['🌦️'],55:['🌧️'],56:['🌧️'],57:['🌧️'],61:['🌦️'],63:['🌧️'],65:['🌧️'],
+ 66:['🌧️'],67:['🌧️'],71:['🌨️'],73:['🌨️'],75:['❄️'],77:['🌨️'],80:['🌦️'],81:['🌧️'],82:['⛈️'],85:['🌨️'],86:['❄️'],95:['⛈️'],96:['⛈️'],99:['⛈️']};
+const wmo=(c,day=1)=>{const w=WIC[c]||['🌡️'];return [(T('wmo')[c]||I18N.en.wmo[c]||'—'),(!day&&w[1])?w[1]:w[0]]};
+const r1=v=>v==null?'—':(Math.round(v*10)/10).toLocaleString(LOC);
+async function weather(){try{const r=await (await fetch('/api/weather')).json();$('#wxplace').textContent=T('weather')+(r.place?' · '+r.place:'');
+  const d=r.data,box=$('#wx');if(!d){box.innerHTML='';box.append(el('div',{class:'mut'},tErr(r.error)||T('unavailable')));return}
+  const [txt,ic]=wmo(d.code,d.is_day),t=d.days&&d.days[0],ws=d.units==='fahrenheit'?' mph':' km/h';box.innerHTML='';
+  box.append(el('div',{class:'wx'},el('div',{class:'ic'},ic),el('div',{},el('div',{class:'big'},r1(d.temp)+'°'),el('div',{class:'sub'},txt))));
+  const kv=el('div',{class:'kv'});const add=(k,v)=>kv.append(el('span',{},k+' ',el('b',{},v)));
+  if(t){add('↑',r1(t.max)+'°');add('↓',r1(t.min)+'°')}add(T('feels'),r1(d.feels)+'°');add(T('humidity'),(d.humidity??'—')+'%');add(T('wind'),r1(d.wind)+ws);box.append(kv);
+  const ds=el('div',{class:'days'});for(const x of (d.days||[]).slice(1,4)){const w=wmo(x.code);
+    ds.append(el('div',{title:w[0]},el('b',{},new Date(x.date+'T12:00').toLocaleDateString(LOC,{weekday:'short'})),w[1]+' '+Math.round(x.max)+'° / '+Math.round(x.min)+'°'))}
+  box.append(ds);$('#sun').innerHTML='';if(d.sunrise){$('#sun').append(el('span',{},T('sunrise')+' ',el('b',{},d.sunrise)),el('span',{},T('sunset')+' ',el('b',{},d.sunset)))}
+}catch(e){}}
+/* system + containers */
+function meter(label,val,pct,lvl){const i=el('i',{style:'width:'+Math.max(0,Math.min(100,pct||0))+'%'});if(pct>=lvl[1])i.className='x';else if(pct>=lvl[0])i.className='w';
+  return el('div',{class:'meter'},el('div',{class:'l'},el('span',{},label),el('b',{},val)),el('div',{class:'b'},i))}
+const upt=s=>{const d=Math.floor(s/86400),h=Math.floor(s%86400/3600);return d?d+' '+T('d')+' '+h+' '+T('h'):h+' '+T('h')+' '+Math.floor(s%3600/60)+' '+T('m')};
+let showAll=false,lastC=null,DOCKER=true;
+function ctable(c){const box=$('#ctr');box.innerHTML='';lastC=c;
+  if(c.error&&!c.items.length){box.append(el('div',{class:'note'},tErr(c.error)));return}
+  $('#ctitle').textContent=T('containers')+' · '+T('running_of',{a:c.running,b:c.total});
+  const tb=el('table');tb.append(el('tr',{},el('th',{},T('name')),el('th',{},T('state')),el('th',{class:'n'},T('cpu')),el('th',{class:'n'},T('memory')),el('th',{},T('status'))));
+  const items=showAll?c.items:c.items.slice(0,10);
+  for(const x of items){const cls=x.state==='running'?'running':(x.state==='exited'||x.state==='dead')?'exited':'other';
+    const lbl=I18N.en['st_'+x.state]?T('st_'+x.state):x.state.toUpperCase();
+    const st=(x.status||'').replace(/^Up /,'').replace(/ \(healthy\)/,' ✓').replace(/\(unhealthy\)/,'⚠');
+    tb.append(el('tr',{title:x.image},el('td',{},x.name),el('td',{},el('span',{class:'st '+cls},lbl)),el('td',{class:'n'},x.cpu==null?'—':r1(x.cpu)+'%'),
+      el('td',{class:'n'},fmtB(x.mem)+(x.mem_limit?' / '+fmtB(x.mem_limit):'')),el('td',{class:'mut'},st)))}
+  box.append(tb);
+  if(c.items.length>10){const b=el('button',{class:'more'},showAll?T('less'):T('all_containers',{n:c.items.length}));b.onclick=()=>{showAll=!showAll;ctable(lastC)};box.append(b)}}
+async function system(){try{const r=await (await fetch('/api/system')).json(),h=r.host||{},box=$('#sys');box.innerHTML='';
+  if(h.cpu!=null)box.append(meter('CPU',r1(h.cpu)+'%'+(h.load?' · '+T('load')+' '+h.load[0].toFixed(2):''),h.cpu,[60,85]));
+  if(h.temp!=null)box.append(meter(T('temp'),r1(h.temp)+' °C',(h.temp-30)/55*100,[60,82]));
+  if(h.mem_total)box.append(meter(T('memory'),fmtB(h.mem_used)+' / '+fmtB(h.mem_total),h.mem_used/h.mem_total*100,[75,90]));
+  if(h.uptime)box.append(el('div',{class:'kv'},el('span',{},T('uptime')+' ',el('b',{},upt(h.uptime))),
+    r.docker&&r.docker.total?el('span',{},T('containers')+' ',el('b',{},r.docker.running+'/'+r.docker.total)):''));
+  if(DOCKER){ctable(r.docker||{items:[],error:'docker_unavailable'});$('#cupd').textContent=T('updated',{t:new Date().toLocaleTimeString(LOC,tOpt({hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:H24?false:undefined}))})}
+}catch(e){}}
+/* config + tiles */
+let PHOTOS=true,PLINK=false;
+async function tiles(){
+  const c=await (await fetch('/api/config')).json(),u=c.ui||{},f=c.features||{};
+  LOC=u.locale||'en';LANG=LOC.split('-')[0].toLowerCase();TZ=u.timezone||undefined;H24=u.clock_24h!==false;
+  try{new Intl.DateTimeFormat(LOC,{timeZone:TZ})}catch(e){LOC='en';TZ=undefined}
+  applyI18n();if(u.host_label)$('#hostlabel').textContent=u.host_label;$('#ver').textContent=c.version?'v'+c.version:'';
+  document.title=c.title;$('#title').textContent=c.title;
+  PHOTOS=f.photos!==false;PLINK=!!c.photo_link;DOCKER=f.docker!==false;
+  $('#car').hidden=!PHOTOS;document.body.classList.toggle('nophotos',!PHOTOS);$('#wxcard').hidden=f.weather===false;$('#csec').hidden=!DOCKER;
+  const root=$('#groups');root.innerHTML='';
+  for(const g of c.groups){const box=el('div',{class:'tiles'});
+    for(const t of g.tiles){const a=el('a',{class:'tile',href:t.url,target:'_blank',rel:'noopener',title:t.url});
+      a.append(t.icon?el('img',{src:t.icon,alt:'',class:t.invert?'inv':''}):el('div',{class:'ph'},t.name[0]||'?'),el('span',{},t.name));
+      if(t.ping)a.append(el('i',{class:'dot','data-n':t.name}));box.append(a)}
+    root.append(el('div',{class:'group'},el('h2',{},g.name||T('apps')),box))}
+  status();SLIDE=c.slide_seconds||8;defAlbum=c.default_album;clock();
+}
+async function status(){try{const s=await (await fetch('/api/status')).json();
+  document.querySelectorAll('.dot').forEach(d=>{const v=s[d.dataset.n];d.className='dot '+(v===true?'up':v===false?'down':'')})}catch(e){}}
+/* photos: one selector (album or "all") + carousel that auto-advances; after a full cycle a new random set is fetched */
+let defAlbum='',aname='',SLIDE=8,set=[],idx=-1,front='#ca',paused=false,busy=false,tok=0,slideT=null;
+const sel=()=>localStorage.getItem('dash.album')||'';
+const pv=id=>'/thumb/'+id+'?size=preview';
+const fdate=d=>d?new Date(d+'T12:00').toLocaleDateString(LOC,{day:'numeric',month:'short',year:'numeric'}):'';
+async function loadAlbums(){if(!PHOTOS)return;try{const r=await (await fetch('/api/albums')).json(),s=$('#album');
+  for(const a of r.albums){s.append(el('option',{value:a.id},a.name+' ('+a.count+')'))}
+  let v=sel();if(!v&&defAlbum){const o=[...s.options].find(o=>o.value===defAlbum||o.textContent.replace(/ \(\d+\)$/,'')===defAlbum);v=o?o.value:'all'}
+  s.value=v||'all';if(s.value!==(v||'all')){s.value='all';localStorage.removeItem('dash.album')}}catch(e){}}
+function msg(t){const m=$('#cmsg');m.textContent=t||'';m.style.display=t?'':'none'}
+async function loadSet(force){
+  if(!PHOTOS||busy)return;busy=true;const my=++tok;
+  try{const r=await (await fetch('/api/photos?album='+encodeURIComponent(sel())+(force?'&new=1':''),{cache:'no-store'})).json();
+    if(my!==tok)return;
+    aname=r.album?r.album.name:T('random');
+    if(r.status==='needs_key'){msg(T('needs_key'));set=[];return}
+    if(r.status==='error'||!r.photos.length){msg('Immich: '+(tErr(r.error)||T('no_photos')));set=[];return}
+    set=r.photos;idx=-1;
+    show(0);
+  }catch(e){msg(T('photos_failed'))}finally{busy=false}
+}
+function show(i){
+  if(!set.length)return;i=(i+set.length)%set.length;const p=set[i],my=tok;
+  const back=front==='#ca'?'#cb':'#ca',img=$(back);
+  img.onload=()=>{if(my!==tok)return;img.classList.add('on');$(front).classList.remove('on');front=back;msg('')};
+  img.onerror=()=>{if(my===tok)setTimeout(()=>{if(my===tok&&idx===i)next()},2000)};
+  img.src=pv(p.id);idx=i;img.style.cursor=p.link?'pointer':'default';
+  $('#ccap').innerHTML='';$('#ccap').append(el('b',{},fdate(p.date)),el('span',{},aname));
+  $('#ccnt').textContent=(i+1)+' / '+set.length;
+  if(set[i+1])new Image().src=pv(set[i+1].id);   /* preload next */
+  restart();
+}
+function next(){if(idx+1>=set.length)loadSet(true);else show(idx+1)}
+function restart(){clearInterval(slideT);slideT=setInterval(()=>{if(!paused&&!document.hidden)next()},SLIDE*1000)}
+$('#car').onmouseenter=()=>paused=true;$('#car').onmouseleave=()=>paused=false;
+$('#cprev').onclick=e=>{e.stopPropagation();show(idx-1)};$('#cnext').onclick=e=>{e.stopPropagation();next()};
+['#ca','#cb'].forEach(q=>$(q).onclick=()=>{const p=set[idx];if(p&&p.link)window.open(p.link,'_blank','noopener')});
+$('#album').onchange=e=>{const v=e.target.value;localStorage.setItem('dash.album',v);tok++;busy=false;msg(T('loading'));loadSet(true)};
+applyI18n();clock();setInterval(clock,10000);
+/* config (locale) first, then the widgets so they render in the right language */
+tiles().catch(()=>{}).then(()=>{weather();system();return loadAlbums()}).then(()=>loadSet(false)).catch(()=>{});
+setInterval(status,60000);setInterval(weather,10*60000);setInterval(system,30000);
+</script>
+</body>
+</html>

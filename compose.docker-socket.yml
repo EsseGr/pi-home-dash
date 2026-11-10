@@ -1,0 +1,13 @@
+# Optional overlay: mount the Docker socket directly (simpler, less safe than compose.docker-proxy.yml).
+#   COMPOSE_FILE=docker-compose.yml:compose.docker-socket.yml   (in .env)
+#   DOCKER_GID=$(getent group docker | cut -d: -f3)             (in .env)
+#
+# WARNING: ":ro" only makes the socket *file* read-only. It does NOT make the Docker API read-only:
+# anything that can talk to this socket can still create/stop containers, i.e. it is root-equivalent
+# on the host. pi-home-dash itself only sends GET requests, but if you want a hard guarantee use the
+# docker-socket-proxy overlay instead.
+services:
+  dash:
+    group_add: ["${DOCKER_GID:-999}"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
